@@ -1,7 +1,7 @@
 import {
   FileText,
   TrendingUp,
-  ClipboardList,
+  BarChart2,
   Download,
   Printer,
 } from "lucide-react";
@@ -34,38 +34,53 @@ export default function Laporan() {
     },
   ];
 
+  // Penambahan spesifik warna icon sesuai desain Figma
   const cards = [
     {
       title: "Laporan Inventaris",
       desc: "Laporan lengkap semua alat kesehatan",
       icon: <FileText size={20} />,
+      iconColor: "bg-blue-100 text-blue-600",
     },
     {
       title: "Laporan Maintenance",
       desc: "Riwayat dan jadwal maintenance",
-      icon: <ClipboardList size={20} />,
+      icon: <BarChart2 size={20} />,
+      iconColor: "bg-green-100 text-green-600",
     },
     {
       title: "Laporan Keuangan",
       desc: "Analisis biaya dan investasi alat",
       icon: <TrendingUp size={20} />,
+      iconColor: "bg-purple-100 text-purple-600",
     },
     {
       title: "Laporan Status Alat",
       desc: "Status kondisi semua alat",
       icon: <FileText size={20} />,
+      iconColor: "bg-orange-100 text-orange-500",
     },
   ];
 
-  return (
-    <div className="p-8 bg-slate-100 min-h-screen">
-      {/* HEADER */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">
-          Laporan
-        </h1>
+  // Fungsi handler aman untuk memastikan SEMUA tombol berjalan
+  const handleGenerateClick = (judulLaporan: string) => {
+    // Console log dan alert ini membuktikan bahwa setiap tombol memiliki aksi yang mandiri
+    console.log(`Menjalankan proses generate untuk: ${judulLaporan}`);
+    alert(`Tombol berfungsi! Siap men-generate data untuk: ${judulLaporan}`);
 
-        <p className="text-slate-500 mt-1">
+    // Nanti kamu bisa masukkan kembali logika jsPDF / xlsx di dalam blok ini
+  };
+
+  const handleActionClick = (actionName: string, namaLaporan: string) => {
+    alert(`Aksi ${actionName} ditekan untuk: ${namaLaporan}`);
+  };
+
+  return (
+    <div className="p-8 bg-slate-50 min-h-screen">
+      {/* HEADER */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8">
+        <h1 className="text-2xl font-bold text-slate-800">Laporan</h1>
+        <p className="text-slate-500 mt-1 text-sm">
           Generate dan kelola berbagai jenis laporan
         </p>
       </div>
@@ -75,21 +90,23 @@ export default function Laporan() {
         {cards.map((card, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col"
           >
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+            {/* Warna Icon Dinamis Sesuai Figma */}
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${card.iconColor}`}>
               {card.icon}
             </div>
 
-            <h2 className="font-semibold text-slate-800">
-              {card.title}
-            </h2>
-
-            <p className="text-sm text-slate-500 mt-1 mb-5">
+            <h2 className="font-bold text-slate-800 mb-1">{card.title}</h2>
+            <p className="text-sm text-slate-500 mb-6 flex-grow">
               {card.desc}
             </p>
 
-            <button className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-lg font-medium transition">
+            {/* Tombol Gelap Sesuai Figma */}
+            <button
+              onClick={() => handleGenerateClick(card.title)}
+              className="w-full bg-[#111827] hover:bg-slate-800 text-white py-2.5 rounded-lg text-sm font-medium transition"
+            >
               Generate Laporan
             </button>
           </div>
@@ -97,69 +114,65 @@ export default function Laporan() {
       </div>
 
       {/* TABEL */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-bold text-slate-800">
-            Laporan Terbaru
-          </h2>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-800">Laporan Terbaru</h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 text-slate-500 text-sm">
+            <thead className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
               <tr>
-                <th className="text-left px-6 py-4">
-                  NAMA LAPORAN
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  TANGGAL DIBUAT
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  TIPE
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  FORMAT
-                </th>
-
-                <th className="text-left px-6 py-4">
-                  AKSI
-                </th>
+                <th className="text-left px-6 py-4">NAMA LAPORAN</th>
+                <th className="text-left px-6 py-4">TANGGAL DIBUAT</th>
+                <th className="text-left px-6 py-4">TIPE</th>
+                <th className="text-left px-6 py-4">FORMAT</th>
+                <th className="text-left px-6 py-4">AKSI</th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {laporanTerbaru.map((item, index) => (
                 <tr
                   key={index}
-                  className="border-t hover:bg-slate-50 transition"
+                  className="hover:bg-slate-50 transition"
                 >
-                  <td className="px-6 py-4 text-slate-700">
+                  <td className="px-6 py-4 text-slate-800 text-sm font-medium flex items-center gap-3">
+                    {/* Tambahan Icon Dokumen di dalam tabel seperti Figma */}
+                    <FileText size={18} className="text-slate-400" />
                     {item.nama}
                   </td>
 
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-slate-600 text-sm">
                     {item.tanggal}
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-md text-sm">
+                    <span className="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-md text-xs font-medium">
                       {item.tipe}
                     </span>
                   </td>
 
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-slate-600 text-sm">
                     {item.format}
                   </td>
 
-                  <td className="px-6 py-4 flex gap-4 text-slate-500">
-                    <button>
+                  <td className="px-6 py-4 flex gap-4">
+                    {/* Icon Download (Biru) Sesuai Figma */}
+                    <button
+                      onClick={() => handleActionClick("Download", item.nama)}
+                      className="text-blue-500 hover:text-blue-700 transition"
+                      title="Download"
+                    >
                       <Download size={18} />
                     </button>
 
-                    <button>
+                    {/* Icon Print (Abu-abu gelap) Sesuai Figma */}
+                    <button
+                      onClick={() => handleActionClick("Print", item.nama)}
+                      className="text-slate-600 hover:text-slate-800 transition"
+                      title="Print"
+                    >
                       <Printer size={18} />
                     </button>
                   </td>
