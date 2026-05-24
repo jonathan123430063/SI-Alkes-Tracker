@@ -28,7 +28,7 @@ export default function DataAlat() {
   // 2. STATE UNTUK MODAL TAMBAH/EDIT
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null); // Menggunakan index agar aman
+  const [editIndex, setEditIndex] = useState<number | null>(null); 
   
   const [formData, setFormData] = useState({
     nama: "",
@@ -38,6 +38,36 @@ export default function DataAlat() {
     harga: "",
     tglBeli: ""
   });
+
+  // --- FUNGSI HELPER: PENGIRIM NOTIFIKASI ---
+  const createNotification = (title: string, description: string, tipe: string) => {
+    const newNotif = {
+      id: Date.now(),
+      title,
+      description,
+      waktu: new Date().toISOString(),
+      tipe,
+      isRead: false
+    };
+    const savedNotifs = JSON.parse(localStorage.getItem('dataNotifikasi') || '[]');
+    localStorage.setItem('dataNotifikasi', JSON.stringify([newNotif, ...savedNotifs]));
+  };
+
+  // --- FUNGSI HELPER: PENCATAT RIWAYAT ---
+  const createRiwayat = (aktivitas: string, namaAlat: string, kategori: string, deskripsi: string) => {
+    const newRiwayat = {
+      id: Date.now() + 1, // +1 agar id tidak bentrok jika dipanggil bersamaan dgn notif
+      tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+      waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      aktivitas,
+      namaAlat,
+      kategori,
+      pengguna: "Admin",
+      deskripsi
+    };
+    const savedRiwayat = JSON.parse(localStorage.getItem('dataRiwayat') || '[]');
+    localStorage.setItem('dataRiwayat', JSON.stringify([newRiwayat, ...savedRiwayat]));
+  };
 
   // 3. FILTER DATA UNTUK TABEL
   const filteredAlat = alat.filter((item: any) => {
@@ -69,12 +99,19 @@ export default function DataAlat() {
     }).format(Number(angka));
   };
 
-  // 6. FUNGSI HANDLER (CRUD MENGGUNAKAN INDEX)
+  // 6. FUNGSI HANDLER (CRUD) MENGGUNAKAN INDEX + INTEGRASI NOTIFIKASI
   const handleDelete = (index: number) => {
     if (!setAlat) return alert("Fungsi setAlat tidak ditemukan di context.");
-    if (window.confirm("Apakah Anda yakin ingin menghapus alat ini?")) {
+    
+    const alatYangDihapus = alat[index];
+    
+    if (window.confirm(`Apakah Anda yakin ingin menghapus ${alatYangDihapus.nama}?`)) {
       const dataBaru = alat.filter((_: any, i: number) => i !== index);
       setAlat(dataBaru);
+
+      // Trigger Notifikasi & Riwayat
+      createNotification("Alat Dihapus", `${alatYangDihapus.nama} telah dihapus dari inventaris`, "error");
+      createRiwayat("Penghapusan Alat", alatYangDihapus.nama, alatYangDihapus.kategori, "Alat dihapus dari sistem inventaris");
     }
   };
 
@@ -105,14 +142,35 @@ export default function DataAlat() {
     if (!setAlat) return alert("Fungsi setAlat tidak ditemukan di context.");
 
     if (isEditing && editIndex !== null) {
-      // Update data berdasarkan index
+      // PROSES EDIT DATA
+      const oldData = alat[editIndex];
       const dataBaru = [...alat];
       dataBaru[editIndex] = formData;
       setAlat(dataBaru);
+
+      // Deteksi jika terjadi perubahan status (Misal: Aktif -> Rusak)
+      if (oldData.status !== formData.status) {
+        let notifType = "info";
+        if (formData.status === "Rusak") notifType = "error";
+        else if (formData.status === "Perlu Maintenance") notifType = "warning";
+        else if (formData.status === "Aktif") notifType = "success";
+
+        createNotification("Status Berubah", `${formData.nama} status berubah menjadi ${formData.status}`, notifType);
+        createRiwayat("Perubahan Status", formData.nama, formData.kategori, `Status diubah menjadi ${formData.status}`);
+      } else {
+        createNotification("Data Alat Diperbarui", `Informasi ${formData.nama} berhasil diperbarui`, "info");
+        createRiwayat("Pembaruan Data", formData.nama, formData.kategori, "Informasi detail alat diperbarui");
+      }
+
     } else {
-      // Tambah data baru
+      // PROSES TAMBAH DATA BARU
       setAlat([...alat, formData]);
+      
+      // Trigger Notifikasi & Riwayat Alat Baru
+      createNotification("Alat Baru Ditambahkan", `${formData.nama} telah ditambahkan ke inventaris`, "info");
+      createRiwayat("Penambahan Alat", formData.nama, formData.kategori, "Alat baru ditambahkan ke inventaris");
     }
+    
     handleCloseModal();
   };
 
@@ -218,7 +276,6 @@ export default function DataAlat() {
             <tbody className="divide-y divide-slate-100">
               {filteredAlat.length > 0 ? (
                 filteredAlat.map((item: any, index: number) => {
-                  // Kita butuh index asli (dari array 'alat' utama) untuk fungsi edit/delete, bukan index dari array 'filteredAlat'
                   const originalIndex = alat.findIndex((a: any) => a === item);
                   
                   return (
