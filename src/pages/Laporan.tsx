@@ -11,25 +11,21 @@ import {
   FileSpreadsheet
 } from "lucide-react";
 
-// Import Library Export
+// Import Library Export yang sudah diperbaiki
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable"; // <-- Perbaikan import di sini
 import * as XLSX from "xlsx";
 
 export default function Laporan() {
-  // 1. INTEGRASI DATA DARI CONTEXT DAN LOCALSTORAGE
   const { alat = [] } = useAlat() || {};
   const [laporanTerbaru, setLaporanTerbaru] = useState<any[]>([]);
 
-  // 2. STATE UNTUK MODAL GENERATE
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("PDF");
 
-  // Load riwayat laporan dari localStorage saat pertama kali render
   useEffect(() => {
     const savedLaporan = JSON.parse(localStorage.getItem("dataLaporan") || "[]");
-    // Jika masih kosong banget, beri data awal sebagai pemanis
     if (savedLaporan.length === 0) {
       const defaultLaporan = [
         { id: 1, nama: "Laporan Inventaris Awal", tanggal: "01 Mei 2024", tipe: "Inventaris", format: "PDF" },
@@ -46,7 +42,6 @@ export default function Laporan() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(Number(angka));
   };
 
-  // 3. LOGIKA UTAMA: EXPORT DATA
   const executeGenerate = (tipe: string, format: string, action = "download") => {
     let dataBaris: any[] = [];
     let kolomHead: string[] = [];
@@ -77,37 +72,47 @@ export default function Laporan() {
 
     // B. PROSES PEMBUATAN FILE (PDF / EXCEL)
     if (format === "PDF") {
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text(judul, 14, 15);
-      doc.setFontSize(10);
-      doc.text(`Dicetak pada: ${new Date().toLocaleDateString("id-ID")}`, 14, 22);
+      try {
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text(judul, 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Dicetak pada: ${new Date().toLocaleDateString("id-ID")}`, 14, 22);
 
-      (doc as any).autoTable({
-        head: [kolomHead],
-        body: dataBaris,
-        startY: 28,
-        theme: "grid",
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [37, 99, 235] } // Warna header biru tailwind
-      });
+        // Perbaikan cara pemanggilan autoTable
+        autoTable(doc, {
+          head: [kolomHead],
+          body: dataBaris,
+          startY: 28,
+          theme: "grid",
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [37, 99, 235] } 
+        });
 
-      if (action === "print") {
-        doc.autoPrint();
-        window.open(doc.output("bloburl"), "_blank");
-      } else {
-        doc.save(`${judul}.pdf`);
+        if (action === "print") {
+          doc.autoPrint();
+          window.open(doc.output("bloburl"), "_blank");
+        } else {
+          doc.save(`${judul}.pdf`);
+        }
+      } catch (error) {
+        console.error("Gagal men-generate PDF:", error);
+        alert("Terjadi kesalahan saat membuat PDF. Pastikan data tidak kosong.");
       }
     } 
     else if (format === "Excel") {
-      const sheetData = [kolomHead, ...dataBaris];
-      const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Data Laporan");
-      XLSX.writeFile(workbook, `${judul}.xlsx`);
+      try {
+        const sheetData = [kolomHead, ...dataBaris];
+        const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Laporan");
+        XLSX.writeFile(workbook, `${judul}.xlsx`);
+      } catch (error) {
+        console.error("Gagal men-generate Excel:", error);
+      }
     }
 
-    // C. SIMPAN RIWAYAT LAPORAN KE TABEL BAWAH (Hanya jika sedang membuat laporan baru)
+    // C. SIMPAN RIWAYAT LAPORAN KE TABEL BAWAH
     if (action === "download" && isModalOpen) {
       const bulanThn = new Date().toLocaleDateString("id-ID", { month: "short", year: "numeric" });
       const tglBuat = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
@@ -208,7 +213,6 @@ export default function Laporan() {
                     >
                       <Download size={18} />
                     </button>
-                    {/* Print hanya optimal untuk format PDF */}
                     {item.format === "PDF" && (
                       <button
                         onClick={() => executeGenerate(item.tipe, item.format, "print")}
