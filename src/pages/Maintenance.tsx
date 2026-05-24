@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAlat } from "../context/AlatContext";
 import { 
   Plus, 
@@ -20,6 +20,12 @@ export default function Maintenance() {
   const { alat = [], setAlat } = useAlat() || {};
 
   const [jadwal, setJadwal] = useState<any[]>([]);
+
+  // 1. AMBIL DATA DARI LOCAL STORAGE SAAT HALAMAN DIBUKA
+  useEffect(() => {
+    const savedJadwal = JSON.parse(localStorage.getItem('dataJadwal') || '[]');
+    setJadwal(savedJadwal);
+  }, []);
 
   const akanDatang = jadwal.filter((j) => j.status !== "Selesai");
   const selesai = jadwal.filter((j) => j.status === "Selesai");
@@ -65,17 +71,19 @@ export default function Maintenance() {
     if (window.confirm("Tandai maintenance ini sebagai Selesai?")) {
       const currentJadwal = jadwal.find(j => j.id === id);
       
-      // 1. Update status lokal
-      setJadwal(jadwal.map((j) => j.id === id ? { ...j, status: "Selesai", tanggalSelesai: new Date().toLocaleDateString('id-ID') } : j));
+      // 2. UPDATE STATUS LOKAL & SIMPAN KE LOCAL STORAGE
+      const updatedJadwal = jadwal.map((j) => j.id === id ? { ...j, status: "Selesai", tanggalSelesai: new Date().toLocaleDateString('id-ID') } : j);
+      setJadwal(updatedJadwal);
+      localStorage.setItem('dataJadwal', JSON.stringify(updatedJadwal));
       
-      // 2. SINKRONISASI CONTEXT ALAT: Alat kembali Aktif
+      // 3. SINKRONISASI CONTEXT ALAT: Alat kembali Aktif
       if (setAlat && alat.length > 0) {
         setAlat(alat.map((a: any) => 
           a.nama === namaAlatTarget ? { ...a, status: "Aktif" } : a
         ));
       }
 
-      // 3. KIRIM KE RIWAYAT VIA LOCALSTORAGE
+      // 4. KIRIM KE RIWAYAT VIA LOCALSTORAGE
       const newRiwayat = {
         id: Date.now(),
         tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -99,7 +107,10 @@ export default function Maintenance() {
       ...formData
     };
     
-    setJadwal([newItem, ...jadwal]);
+    // 5. TAMBAH JADWAL BARU LOKAL & SIMPAN KE LOCAL STORAGE
+    const updatedJadwal = [newItem, ...jadwal];
+    setJadwal(updatedJadwal);
+    localStorage.setItem('dataJadwal', JSON.stringify(updatedJadwal));
 
     if (setAlat && alat.length > 0) {
       setAlat(alat.map((a: any) => {
