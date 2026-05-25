@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   PieChart, 
   Pie, 
@@ -21,13 +21,21 @@ import {
   X
 } from "lucide-react";
 import { useAlat } from "../context/AlatContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  // 1. INTEGRASI CONTEXT
-  // Mengambil data 'alat' dan fungsi 'setAlat' (jika ada) dari context
   const { alat = [], setAlat } = useAlat() || {};
+  const navigate = useNavigate();
 
-  // 2. STATE UNTUK MODAL TAMBAH/EDIT
+  // 1. STATE UNTUK JADWAL MAINTENANCE
+  const [jadwalDashboard, setJadwalDashboard] = useState<any[]>([]);
+
+  // Mengambil data jadwal maintenance saat dashboard dibuka
+  useEffect(() => {
+    const savedJadwal = JSON.parse(localStorage.getItem('dataJadwal') || '[]');
+    setJadwalDashboard(savedJadwal);
+  }, []);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -40,13 +48,11 @@ export default function Dashboard() {
     tglBeli: ""
   });
 
-  // 3. KALKULASI STATISTIK DARI DATA ASLI (CONTEXT)
   const total = alat.length;
   const aktif = alat.filter((a: any) => a.status === "Aktif").length;
   const maintenance = alat.filter((a: any) => a.status === "Maintenance" || a.status === "Perlu Maintenance").length;
   const rusak = alat.filter((a: any) => a.status === "Rusak").length;
 
-  // Handle pembagian dengan nol jika data kosong
   const persenAktif = total > 0 ? ((aktif / total) * 100).toFixed(1) : "0.0";
   const persenMaintenance = total > 0 ? ((maintenance / total) * 100).toFixed(1) : "0.0";
   const persenRusak = total > 0 ? ((rusak / total) * 100).toFixed(1) : "0.0";
@@ -57,22 +63,18 @@ export default function Dashboard() {
     { name: "Alat Rusak", value: rusak, color: "#ef4444" },
   ];
 
-  // 4. MEMBUAT LIST DINAMIS DARI DATA CONTEXT
-  // Ambil maksimal 3 alat terbaru yang butuh maintenance
-  const maintenanceList = alat
-    .filter((a: any) => a.status === "Maintenance" || a.status === "Perlu Maintenance")
+  // 2. DAFTAR DINAMIS DARI DATA MAINTENANCE (Maksimal 3 teratas yang belum selesai)
+  const maintenanceList = jadwalDashboard
+    .filter((j: any) => j.status !== "Selesai")
     .slice(0, 3);
 
-  // Helper Icon Dinamis
   const getIcon = (kategori: string) => {
-    switch(kategori) {
-      case "Diagnostik": return <Activity size={16} />;
-      case "Terapi": return <Layers size={16} />;
-      default: return <FileText size={16} />;
-    }
+    const k = (kategori || "").toLowerCase();
+    if (k === "diagnostik") return <Activity size={16} />;
+    if (k === "terapi") return <Layers size={16} />;
+    return <FileText size={16} />;
   };
 
-  // 5. FUNGSI HANDLER TOMBOL (Update ke Context)
   const handleDelete = (id: number) => {
     if (!setAlat) return alert("Fungsi setAlat tidak ditemukan di context.");
     if (window.confirm("Apakah Anda yakin ingin menghapus alat ini?")) {
@@ -106,12 +108,10 @@ export default function Dashboard() {
     if (!setAlat) return alert("Fungsi setAlat tidak ditemukan di context.");
 
     if (isEditing && editId !== null) {
-      // Update data di context
       setAlat(alat.map((item: any) => 
         item.id === editId ? { ...item, ...formData } : item
       ));
     } else {
-      // Tambah data baru ke context
       const newItem = {
         id: alat.length > 0 ? Math.max(...alat.map((i: any) => i.id || 0)) + 1 : 1,
         ...formData
@@ -124,7 +124,7 @@ export default function Dashboard() {
   return (
     <div className="p-8 bg-slate-50 min-h-screen relative">
       {/* HEADER */}
-      <div className="mb-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
       </div>
 
@@ -221,28 +221,38 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-md font-bold text-slate-800">Alat Perlu Maintenance</h2>
-            <button className="text-xs text-blue-600 font-semibold hover:underline">Lihat Semua</button>
+            <button 
+              onClick={() => navigate('/maintenance')}
+              className="text-xs text-blue-600 font-semibold hover:underline cursor-pointer"
+            >
+              Lihat Semua
+            </button>
           </div>
           <div className="space-y-4 flex-grow flex flex-col justify-center">
+            {/* 3. MENAMPILKAN DATA MAINTENANCE ASLI BESERTA STATUS PRIORITASNYA */}
             {maintenanceList.length > 0 ? (
               maintenanceList.map((item: any) => (
                 <div key={item.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-50 bg-slate-50/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
                       {getIcon(item.kategori)}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800 leading-tight">{item.nama}</h4>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.lokasi}</p>
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-slate-800 leading-tight truncate pr-2">{item.namaAlat}</h4>
+                      <p className="text-xs text-slate-400 mt-0.5 truncate pr-2">{item.lokasi} • {item.tanggal}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="inline-block bg-orange-50 text-orange-500 text-[10px] font-bold px-2 py-0.5 rounded mt-1">Segera</span>
+                  <div className="text-right shrink-0">
+                    <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded mt-1 ${
+                      item.status === "Segera" ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
+                    }`}>
+                      {item.status}
+                    </span>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center text-sm text-slate-400 py-4">Semua alat dalam kondisi baik.</div>
+              <div className="text-center text-sm text-slate-400 py-4">Semua jadwal maintenance telah selesai.</div>
             )}
           </div>
         </div>
@@ -324,7 +334,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold text-slate-800">
                 {isEditing ? "Edit Data Alat" : "Tambah Alat Baru"}
               </h2>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -344,7 +354,7 @@ export default function Dashboard() {
                   <select 
                     value={formData.kategori}
                     onChange={(e) => setFormData({...formData, kategori: e.target.value})}
-                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
                     <option value="Diagnostik">Diagnostik</option>
                     <option value="Terapi">Terapi</option>
@@ -366,7 +376,7 @@ export default function Dashboard() {
                     <select 
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       <option value="Aktif">Aktif</option>
                       <option value="Perlu Maintenance">Perlu Maintenance</option>
@@ -379,7 +389,7 @@ export default function Dashboard() {
                     <input 
                       type="date" required value={formData.tglBeli}
                       onChange={(e) => setFormData({...formData, tglBeli: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     />
                   </div>
                 </div>

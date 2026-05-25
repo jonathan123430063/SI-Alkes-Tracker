@@ -21,7 +21,7 @@ export default function Maintenance() {
 
   const [jadwal, setJadwal] = useState<any[]>([]);
 
-  // 1. AMBIL DATA DARI LOCAL STORAGE
+  // 1. AMBIL DATA DARI LOCAL STORAGE SAAT HALAMAN DIBUKA
   useEffect(() => {
     const savedJadwal = JSON.parse(localStorage.getItem('dataJadwal') || '[]');
     setJadwal(savedJadwal);
@@ -44,20 +44,6 @@ export default function Maintenance() {
     teknisi: "",
     status: "Terjadwal"
   });
-
-  // --- FUNGSI HELPER: PENGIRIM NOTIFIKASI ---
-  const createNotification = (title: string, description: string, tipe: string) => {
-    const newNotif = {
-      id: Date.now(),
-      title,
-      description,
-      waktu: new Date().toISOString(),
-      tipe,
-      isRead: false
-    };
-    const savedNotifs = JSON.parse(localStorage.getItem('dataNotifikasi') || '[]');
-    localStorage.setItem('dataNotifikasi', JSON.stringify([newNotif, ...savedNotifs]));
-  };
 
   const getIcon = (nama: string, kategori: string) => {
     const n = (nama || "").toLowerCase();
@@ -85,28 +71,21 @@ export default function Maintenance() {
     if (window.confirm("Tandai maintenance ini sebagai Selesai?")) {
       const currentJadwal = jadwal.find(j => j.id === id);
       
-      // Update status lokal & simpan
+      // 2. UPDATE STATUS LOKAL & SIMPAN KE LOCAL STORAGE
       const updatedJadwal = jadwal.map((j) => j.id === id ? { ...j, status: "Selesai", tanggalSelesai: new Date().toLocaleDateString('id-ID') } : j);
       setJadwal(updatedJadwal);
       localStorage.setItem('dataJadwal', JSON.stringify(updatedJadwal));
       
-      // SINKRONISASI CONTEXT ALAT: Alat kembali Aktif
+      // 3. SINKRONISASI CONTEXT ALAT: Alat kembali Aktif
       if (setAlat && alat.length > 0) {
         setAlat(alat.map((a: any) => 
           a.nama === namaAlatTarget ? { ...a, status: "Aktif" } : a
         ));
       }
 
-      // KIRIM NOTIFIKASI
-      createNotification(
-        "Maintenance Selesai", 
-        `${namaAlatTarget} telah selesai di-maintenance`, 
-        "success"
-      );
-
-      // KIRIM KE RIWAYAT VIA LOCALSTORAGE
+      // 4. KIRIM KE RIWAYAT VIA LOCALSTORAGE
       const newRiwayat = {
-        id: Date.now() + 1,
+        id: Date.now(),
         tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
         waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         aktivitas: "Maintenance Selesai",
@@ -128,12 +107,11 @@ export default function Maintenance() {
       ...formData
     };
     
-    // TAMBAH JADWAL BARU
+    // 5. TAMBAH JADWAL BARU LOKAL & SIMPAN KE LOCAL STORAGE
     const updatedJadwal = [newItem, ...jadwal];
     setJadwal(updatedJadwal);
     localStorage.setItem('dataJadwal', JSON.stringify(updatedJadwal));
 
-    // Update Context Alat
     if (setAlat && alat.length > 0) {
       setAlat(alat.map((a: any) => {
         if (a.nama === formData.namaAlat) {
@@ -144,22 +122,13 @@ export default function Maintenance() {
       }));
     }
 
-    // KIRIM NOTIFIKASI JADWAL BARU
-    const notifType = formData.status === "Segera" ? "warning" : "info";
-    const notifTitle = formData.status === "Segera" ? "Maintenance Segera" : "Maintenance Terjadwal";
-    const notifDesc = formData.status === "Segera" 
-      ? `${formData.namaAlat} perlu maintenance segera`
-      : `${formData.namaAlat} dijadwalkan maintenance pada ${formData.tanggal}`;
-    
-    createNotification(notifTitle, notifDesc, notifType);
-
     setIsModalOpen(false);
     setFormData({ namaAlat: "", kategori: "", lokasi: "", tanggal: "", jenis: "Maintenance Rutin", teknisi: "", status: "Terjadwal" });
   };
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="p-8 bg-slate-50 min-h-screen">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Jadwal Maintenance</h1>
           <p className="text-slate-500 mt-1">Kelola jadwal perawatan dan maintenance alat kesehatan</p>

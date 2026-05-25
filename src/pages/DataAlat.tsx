@@ -178,7 +178,7 @@ export default function DataAlat() {
     <div className="p-8 bg-slate-50 min-h-screen">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Data Alat Kesehatan</h1>
           <p className="text-sm text-slate-500 mt-1">Kelola semua data alat kesehatan di sini</p>

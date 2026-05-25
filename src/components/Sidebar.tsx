@@ -1,3 +1,7 @@
+import React, { useState } from "react";
+// IMPORT GAMBAR LOGO (Sudah disesuaikan dengan logo.jpeg)
+import LogoHospital from "../assets/logo.jpeg"; 
+
 import {
   LayoutDashboard,
   Wrench,
@@ -8,123 +12,90 @@ import {
   Bell,
   Users,
   Settings,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-import {
-  Link,
-  useLocation,
-} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-export default function Sidebar({
-  onLogout,
-}: any) {
-
+export default function Sidebar({ onLogout }: any) {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(true);
 
   const menuItems = [
-    {
-      title: "Dashboard",
-      path: "/",
-      icon: <LayoutDashboard size={18} />,
-    },
-    {
-      title: "Data Alat Kesehatan",
-      path: "/data-alat",
-      icon: <PackageSearch size={18} />,
-    },
-    {
-      title: "Maintenance",
-      path: "/maintenance",
-      icon: <Wrench size={18} />,
-    },
-    {
-      title: "Riwayat",
-      path: "/riwayat",
-      icon: <History size={18} />,
-    },
-    {
-      title: "Laporan",
-      path: "/laporan",
-      icon: <FileBarChart size={18} />,
-    },
-    {
-      title: "Notifikasi",
-      path: "/notifikasi",
-      icon: <Bell size={18} />,
-    },
-    {
-      title: "Pengguna",
-      path: "/pengguna",
-      icon: <Users size={18} />,
-    },
+    { title: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
+    { title: "Data Alat Kesehatan", path: "/data-alat", icon: <PackageSearch size={20} /> },
+    { title: "Maintenance", path: "/maintenance", icon: <Wrench size={20} /> },
+    { title: "Riwayat", path: "/riwayat", icon: <History size={20} /> },
+    { title: "Laporan", path: "/laporan", icon: <FileBarChart size={20} /> },
+    { title: "Notifikasi", path: "/notifikasi", icon: <Bell size={20} /> },
+    { title: "Pengguna", path: "/pengguna", icon: <Users size={20} /> },
   ];
 
   return (
-    <div className="w-[260px] h-screen bg-blue-600 text-white flex flex-col justify-between border-r border-blue-500 shrink-0 relative z-20">
+    <div 
+      className={`${isOpen ? "w-[260px]" : "w-[88px]"} h-screen bg-blue-600 text-white flex flex-col justify-between border-r border-blue-500 shrink-0 relative z-20 transition-all duration-300 ease-in-out`}
+    >
+      {/* TOMBOL TOGGLE */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="absolute -right-3 top-10 bg-white text-blue-600 rounded-full p-1.5 shadow-md border border-slate-100 hover:bg-slate-50 transition-colors z-50 cursor-pointer"
+      >
+        {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+      </button>
 
       {/* TOP */}
       <div className="overflow-y-auto overflow-x-hidden no-scrollbar">
 
-        {/* LOGO */}
-        <div className="px-6 py-8 border-b border-blue-500">
-
-          <div className="flex items-center gap-3">
-
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-bold shrink-0">
-              O
-            </div>
-
-            <div>
-              <h1 className="font-bold text-xl leading-5">
-                SI ALKES
-                <br />
-                TRACKER
-              </h1>
-
-              <p className="text-[10px] text-blue-100 mt-1 leading-tight">
-                Sistem Informasi Alat
-                <br />
-                Kesehatan
-              </p>
-            </div>
-
+        {/* LOGO SECTION */}
+        <div className={`px-6 py-8 border-b border-blue-500 flex ${isOpen ? "items-center" : "justify-center"} gap-3 transition-all duration-300`}>
+          
+          {/* TAG IMG MENGGUNAKAN LOGO.JPEG */}
+          <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-inner overflow-hidden p-1">
+            <img 
+              src={LogoHospital} 
+              alt="Logo RS" 
+              className="w-full h-full object-contain" 
+            />
           </div>
 
+          {/* Teks Logo */}
+          <div className={`transition-all duration-300 overflow-hidden ${isOpen ? "w-auto opacity-100" : "w-0 opacity-0"}`}>
+            <h1 className="font-bold text-xl leading-5 whitespace-nowrap">
+              SI ALKES
+              <br />
+              TRACKER
+            </h1>
+            <p className="text-[10px] text-blue-100 mt-1 leading-tight whitespace-nowrap">
+              Sistem Informasi Alat
+              <br />
+              Kesehatan
+            </p>
+          </div>
         </div>
 
         {/* MENU */}
         <div className="px-3 py-4 space-y-1">
-
           {menuItems.map((item, index) => {
-
             const isActive = location.pathname === item.path;
-
             return (
               <Link
                 key={index}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm
-                  ${
-                    isActive
-                      ? "bg-blue-700 shadow-inner font-medium"
-                      : "hover:bg-blue-500 text-blue-50"
-                  }
+                title={!isOpen ? item.title : ""}
+                className={`flex items-center ${isOpen ? "justify-start px-4" : "justify-center px-0"} py-3 rounded-xl transition-all duration-200 text-sm group
+                  ${isActive ? "bg-blue-700 shadow-inner font-medium" : "hover:bg-blue-500 text-blue-50"}
                 `}
               >
-                {item.icon}
-
-                <span>
+                <div className="shrink-0">{item.icon}</div>
+                <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${isOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>
                   {item.title}
                 </span>
               </Link>
             );
           })}
-
         </div>
-
       </div>
-
     </div>
   );
 }
