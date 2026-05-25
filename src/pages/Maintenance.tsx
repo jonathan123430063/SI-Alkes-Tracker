@@ -13,7 +13,8 @@ import {
   Stethoscope, 
   FileText,
   X,
-  Check
+  Check,
+  Trash2 // <-- Tambahan icon Trash2
 } from "lucide-react";
 
 export default function Maintenance() {
@@ -97,6 +98,15 @@ export default function Maintenance() {
 
       const savedRiwayat = JSON.parse(localStorage.getItem('dataRiwayat') || '[]');
       localStorage.setItem('dataRiwayat', JSON.stringify([newRiwayat, ...savedRiwayat]));
+    }
+  };
+
+  // --- FUNGSI BARU UNTUK MENGHAPUS MAINTENANCE YANG SUDAH SELESAI ---
+  const handleDeleteSelesai = (id: number) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus data maintenance ini?")) {
+      const updatedJadwal = jadwal.filter((j) => j.id !== id);
+      setJadwal(updatedJadwal);
+      localStorage.setItem('dataJadwal', JSON.stringify(updatedJadwal));
     }
   };
 
@@ -257,6 +267,8 @@ export default function Maintenance() {
                   <th className="text-left px-6 py-4">TANGGAL SELESAI</th>
                   <th className="text-left px-6 py-4">JENIS MAINTENANCE</th>
                   <th className="text-left px-6 py-4">TEKNISI</th>
+                  {/* Tambahan Header Aksi */}
+                  <th className="text-center px-6 py-4 w-24">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -276,11 +288,21 @@ export default function Maintenance() {
                       <td className="px-6 py-4 text-slate-500 text-sm">{item.tanggalSelesai || item.tanggal}</td>
                       <td className="px-6 py-4 text-slate-500 text-sm">{item.jenis}</td>
                       <td className="px-6 py-4 text-slate-500 text-sm">{item.teknisi}</td>
+                      {/* Tambahan Kolom Aksi Hapus */}
+                      <td className="px-6 py-4 text-center">
+                        <button 
+                          onClick={() => handleDeleteSelesai(item.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition cursor-pointer" 
+                          title="Hapus Riwayat"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
+                    <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
                       Belum ada riwayat maintenance yang selesai.
                     </td>
                   </tr>
@@ -307,7 +329,7 @@ export default function Maintenance() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Pilih Alat</label>
                   <select 
                     required value={formData.namaAlat} onChange={handleAlatChange}
-                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
                     <option value="" disabled>-- Pilih Alat --</option>
                     {alat.map((a: any, idx: number) => (
@@ -328,7 +350,7 @@ export default function Maintenance() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Jenis Maintenance</label>
                     <select 
                       value={formData.jenis} onChange={(e) => setFormData({...formData, jenis: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       <option value="Maintenance Rutin">Maintenance Rutin</option>
                       <option value="Kalibrasi">Kalibrasi</option>
@@ -340,7 +362,7 @@ export default function Maintenance() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Prioritas</label>
                     <select 
                       value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       <option value="Terjadwal">Terjadwal</option>
                       <option value="Segera">Segera</option>
@@ -353,7 +375,7 @@ export default function Maintenance() {
                     <input 
                       type="date" required value={formData.tanggal}
                       onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     />
                   </div>
                   <div>
