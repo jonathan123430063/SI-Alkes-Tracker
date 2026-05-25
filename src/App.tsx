@@ -12,7 +12,6 @@ import Riwayat from "./pages/Riwayat";
 import Login from "./pages/Login";
 import Pengguna from "./pages/Pengguna";
 import Notifikasi from "./pages/Notifikasi";
-import Pengaturan from "./pages/Pengaturan";
 
 export default function App() {
   const [isLogin, setIsLogin] = useState(
@@ -44,13 +43,6 @@ export default function App() {
           <header className="h-[72px] bg-white border-b border-slate-100 flex items-center justify-end px-8 z-10 shrink-0 shadow-sm">
             <div className="flex items-center gap-6">
               
-              {/* Icon Notifikasi */}
-              <button className="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition">
-                <Bell size={20} />
-                {/* Dot indikator notifikasi merah */}
-                <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-              </button>
-              
               {/* Profil Admin */}
               <div className="flex items-center gap-3 border-l border-slate-100 pl-6 cursor-pointer group">
                 <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm group-hover:bg-blue-700 transition">
@@ -60,7 +52,6 @@ export default function App() {
                   <p className="font-bold text-slate-700 text-sm leading-tight">Admin</p>
                   <p className="text-[11px] text-slate-400 font-medium">Administrator</p>
                 </div>
-                <ChevronDown size={16} className="text-slate-400 ml-1 group-hover:text-slate-600 transition" />
               </div>
 
             </div>
@@ -77,7 +68,6 @@ export default function App() {
               <Route path="/notifikasi" element={<Notifikasi />} />
               <Route path="/pengguna" element={<Pengguna />} />
               <Route path="/tracking" element={<Tracking />} />
-              <Route path="/pengaturan" element={<Pengaturan />} />
             </Routes>
           </main>
 

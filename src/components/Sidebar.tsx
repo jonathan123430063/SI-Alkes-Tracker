@@ -58,11 +58,6 @@ export default function Sidebar({
       path: "/pengguna",
       icon: <Users size={18} />,
     },
-    {
-      title: "Pengaturan",
-      path: "/pengaturan",
-      icon: <Settings size={18} />,
-    },
   ];
 
   return (
@@ -127,43 +122,6 @@ export default function Sidebar({
           })}
 
         </div>
-
-      </div>
-
-      {/* USER & LOGOUT SECTION */}
-      <div className="border-t border-blue-500 p-4 shrink-0 bg-blue-600">
-
-        <div className="flex items-center justify-between cursor-pointer hover:bg-blue-700 p-2 -mx-2 rounded-xl transition-colors">
-
-          <div className="flex items-center gap-3">
-
-            <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center font-bold shadow-sm shrink-0">
-              A
-            </div>
-
-            <div>
-              <h1 className="font-bold text-sm leading-tight">
-                Admin
-              </h1>
-
-              <p className="text-[11px] text-blue-200 mt-0.5">
-                Administrator
-              </p>
-            </div>
-
-          </div>
-
-          <ChevronDown size={18} className="text-blue-200" />
-
-        </div>
-
-        <button
-          onClick={onLogout}
-          className="mt-4 w-full bg-blue-800 hover:bg-red-500 hover:text-white transition-colors duration-300 p-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold shadow-sm"
-        >
-          <LogOut size={16} />
-          Logout
-        </button>
 
       </div>
 

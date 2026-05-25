@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Calendar, 
   Download,
   Activity, 
   Monitor, 
   Syringe, 
   Layers, 
   Stethoscope, 
-  FileText
+  FileText,
+  X
 } from "lucide-react";
 
 export default function Riwayat() {
   const [dataRiwayat, setDataRiwayat] = useState<any[]>([]);
+  // 1. STATE UNTUK FILTER TANGGAL
+  const [filterDate, setFilterDate] = useState("");
 
   // Mengambil data murni HANYA dari localStorage
   useEffect(() => {
     const savedRiwayat = JSON.parse(localStorage.getItem('dataRiwayat') || '[]');
     setDataRiwayat(savedRiwayat);
   }, []);
+
+  // 2. LOGIKA FILTER DATA
+  const filteredRiwayat = dataRiwayat.filter((item) => {
+    if (!filterDate) return true; // Jika filter kosong, tampilkan semua
+
+    // Mengubah tanggal dari input (YYYY-MM-DD) agar formatnya sama dengan yang disimpan di tabel (DD Mmm YYYY)
+    const dateObj = new Date(filterDate);
+    const formattedFilter = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    
+    return item.tanggal === formattedFilter;
+  });
 
   const getIcon = (nama: string, kategori: string) => {
     const n = (nama || "").toLowerCase();
@@ -55,14 +68,26 @@ export default function Riwayat() {
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer">
-            <Calendar size={18} className="text-slate-500" />
-            Filter Tanggal
-          </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-sm cursor-pointer">
-            <Download size={18} />
-            Export
-          </button>
+          {/* INPUT FILTER TANGGAL */}
+          <div className="relative flex items-center">
+            <input 
+              type="date" 
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
+              title="Pilih tanggal untuk memfilter"
+            />
+            {/* Tombol Hapus Filter (Muncul jika ada tanggal yang dipilih) */}
+            {filterDate && (
+              <button 
+                onClick={() => setFilterDate("")} 
+                className="absolute -right-2 -top-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200 transition"
+                title="Hapus Filter"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -81,8 +106,9 @@ export default function Riwayat() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {dataRiwayat.length > 0 ? (
-                dataRiwayat.map((item: any, index: number) => (
+              {/* 3. GUNAKAN DATA YANG SUDAH DIFILTER */}
+              {filteredRiwayat.length > 0 ? (
+                filteredRiwayat.map((item: any, index: number) => (
                   <tr key={item.id || index} className="hover:bg-slate-50/50 transition">
                     <td className="px-6 py-4 text-slate-500 text-sm">{index + 1}</td>
                     
@@ -113,7 +139,9 @@ export default function Riwayat() {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-slate-400 text-sm">
-                    Belum ada riwayat aktivitas yang tercatat.
+                    {filterDate 
+                      ? `Tidak ada riwayat aktivitas pada tanggal ${new Date(filterDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}.` 
+                      : "Belum ada riwayat aktivitas yang tercatat."}
                   </td>
                 </tr>
               )}
