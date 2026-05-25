@@ -30,6 +30,7 @@ export default function Sidebar({ onLogout }: any) {
     { title: "Laporan", path: "/laporan", icon: <FileBarChart size={20} /> },
     { title: "Notifikasi", path: "/notifikasi", icon: <Bell size={20} /> },
     { title: "Pengguna", path: "/pengguna", icon: <Users size={20} /> },
+    { title: "Pengaturan", path: "/pengaturan", icon: <Settings size={20} /> }, // Menambahkan menu pengaturan yang sudah kita buat sebelumnya
   ];
 
   return (
@@ -44,7 +45,7 @@ export default function Sidebar({ onLogout }: any) {
         {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
 
-      {/* TOP */}
+      {/* === BAGIAN ATAS (LOGO & MENU) === */}
       <div className="overflow-y-auto overflow-x-hidden no-scrollbar">
 
         {/* LOGO SECTION */}
@@ -96,6 +97,23 @@ export default function Sidebar({ onLogout }: any) {
           })}
         </div>
       </div>
+
+      {/* === BAGIAN BAWAH (TOMBOL LOGOUT) === */}
+      <div className="p-4 border-t border-blue-500">
+        <button
+          onClick={onLogout}
+          title={!isOpen ? "Keluar" : ""}
+          className={`w-full flex items-center ${isOpen ? "justify-start px-4" : "justify-center px-0"} py-3 rounded-xl transition-all duration-200 text-sm group hover:bg-blue-700 text-blue-50 cursor-pointer`}
+        >
+          <div className="shrink-0">
+            <LogOut size={20} className="text-blue-200 group-hover:text-red-300 transition-colors" />
+          </div>
+          <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${isOpen ? "w-auto opacity-100 ml-3 font-medium group-hover:text-red-100" : "w-0 opacity-0 ml-0"}`}>
+            Keluar
+          </span>
+        </button>
+      </div>
+
     </div>
   );
 }
