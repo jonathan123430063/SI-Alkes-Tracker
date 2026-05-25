@@ -30,7 +30,6 @@ export default function Sidebar({ onLogout }: any) {
     { title: "Laporan", path: "/laporan", icon: <FileBarChart size={20} /> },
     { title: "Notifikasi", path: "/notifikasi", icon: <Bell size={20} /> },
     { title: "Pengguna", path: "/pengguna", icon: <Users size={20} /> },
-    { title: "Pengaturan", path: "/pengaturan", icon: <Settings size={20} /> }, // Menambahkan menu pengaturan yang sudah kita buat sebelumnya
   ];
 
   return (
